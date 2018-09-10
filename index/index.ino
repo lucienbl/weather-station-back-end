@@ -15,8 +15,6 @@ void setup() {
 
 
 void loop() {
-  float temperatureIndoor;
-  float temperatureOutdoor;
   EthernetClient client = serveur.available();
   
   if (client) {
