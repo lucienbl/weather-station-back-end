@@ -1,12 +1,34 @@
+#include <ArduinoJson.h>
 #include <SPI.h>
 #include <Ethernet.h>
+#include <SD.h>
+
+File dataFile;
+StaticJsonBuffer<200> jsonBuffer;
+EthernetServer serveur(80);
 
 byte mac[] = {0x90, 0xA2, 0xDA, 0x0F, 0xDF, 0xAB};
 
-EthernetServer serveur(80);
+int data;
 
 void setup() {
   Serial.begin (9600);
+
+  //Opening data file
+  Serial.println("*************\nInitialisation...");
+  if (!SD.begin(4)){
+    Serial.println("SDcard error !");
+    return; 
+  }; 
+  Serial.println("SDcard ok !");
+  Serial.println("Opening data file...");
+  if (!(dataFile = SD.open("db.json", FILE_WRITE))){
+    Serial.println("File error !");
+    return;
+  }else{
+    data = dataFile.read();
+  }
+  
   Ethernet.begin (mac);
   Serial.print("\nLe serveur est sur l'adresse : ");
   Serial.println(Ethernet.localIP());
