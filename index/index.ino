@@ -1,34 +1,20 @@
-#include <ArduinoJson.h>
+#include <SimpleDHT.h>
 #include <SPI.h>
 #include <Ethernet.h>
-#include <SD.h>
 
-File dataFile;
-StaticJsonBuffer<200> jsonBuffer;
 EthernetServer serveur(80);
 
 byte mac[] = {0x90, 0xA2, 0xDA, 0x0F, 0xDF, 0xAB};
 
-int data;
+byte temperature = 0;
+byte humidity = 0;
+
+int pinDHT11 = 2;
+SimpleDHT11 dht11;
 
 void setup() {
   Serial.begin (9600);
 
-  //Opening data file
-  Serial.println("*************\nInitialisation...");
-  if (!SD.begin(4)){
-    Serial.println("SDcard error !");
-    return; 
-  }; 
-  Serial.println("SDcard ok !");
-  Serial.println("Opening data file...");
-  if (!(dataFile = SD.open("db.json", FILE_WRITE))){
-    Serial.println("File error !");
-    return;
-  }else{
-    data = dataFile.read();
-  }
-  
   Ethernet.begin (mac);
   Serial.print("\nLe serveur est sur l'adresse : ");
   Serial.println(Ethernet.localIP());
@@ -37,6 +23,8 @@ void setup() {
 
 
 void loop() {
+  getTempHum();
+  
   EthernetClient client = serveur.available();
   
   if (client) {
@@ -57,7 +45,7 @@ void loop() {
       client.println();
 
       //Content
-      client.print("{\"name\": \"Lucien\"}");
+      client.print("{\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}");
 
       //Ends
       client.println();
@@ -65,4 +53,14 @@ void loop() {
       Serial.println("Fin de communication avec le client");
     }
   }
+}
+
+void getTempHum() {
+  byte data[40] = {0};
+  if (dht11.read(pinDHT11, &temperature, &humidity, data)) {
+    Serial.print("Read DHT11 failed");
+    return;
+  }
+
+  delay(1000);
 }
