@@ -2,5 +2,5 @@
 Arduino back-end source code.
 
 ## What you need ?
-- [] Arduino Uno card
-- [] Arduino Ethernet shield
+- [ ] Arduino Uno card
+- [ ] Arduino Ethernet shield
