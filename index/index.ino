@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <Wire.h>  
+#include <avr/wdt.h>
 
 EthernetServer serveur(80);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -43,26 +44,42 @@ void loop() {
     Serial.println("Client en ligne\n");
 
     if (client.connected()) {
+      String httpResponse;
       while (client.available()) {      
         char c=client.read();
+        httpResponse += c;
+        
         Serial.write(c);
+        
+        if(httpResponse.indexOf("/reboot") != -1) {
+          client.println("SUCCESS");
+          client.stop();
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print("Rebooting...");
+          delay(2000);
+          reboot();
+        }else if(httpResponse.indexOf("/data") != -1){
+          //Header
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: application/json;charset=utf-8");
+          client.println("Server: Arduino");
+          client.println("Connnection: close");
+          client.println();
+    
+          //Content
+          client.print("{\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}");
+    
+          //Ends
+          client.println();
+          client.stop();
+          Serial.println("Fin de communication avec le client");
+        }
         delay(1);
       }
 
-      //Header
-      client.println("HTTP/1.1 200 OK");
-      client.println("Content-Type: application/json;charset=utf-8");
-      client.println("Server: Arduino");
-      client.println("Connnection: close");
-      client.println();
-
-      //Content
-      client.print("{\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}");
-
-      //Ends
-      client.println();
+      client.println("Nothing to see here !");
       client.stop();
-      Serial.println("Fin de communication avec le client");
     }
   }
 }
@@ -78,4 +95,9 @@ void getTempHum() {
   }
 
   delay(1000);
+}
+
+void reboot() {
+  wdt_enable(WDTO_15MS);
+  while(1) {}
 }
