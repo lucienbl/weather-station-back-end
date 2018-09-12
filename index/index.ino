@@ -43,10 +43,7 @@ void loop() {
     Serial.println("Client en ligne\n");
 
     if (client.connected()) {
-      while (client.available()) {
-        lcd.setCursor(0, 1);
-        lcd.print("Client loading...");
-      
+      while (client.available()) {      
         char c=client.read();
         Serial.write(c);
         delay(1);
