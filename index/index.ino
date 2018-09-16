@@ -78,7 +78,7 @@ void loop() {
         delay(1);
       }
 
-      client.println("Nothing to see here !");
+      client.println("Nothing to see here ! Please go to /data");
       client.stop();
     }
   }
