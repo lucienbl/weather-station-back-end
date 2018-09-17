@@ -12,5 +12,5 @@ Arduino back-end source code.
 - `/reboot`: Reboot the card
 
 ## Prototype
-![Prototype](https://lh6.googleusercontent.com/R61pzjzPueSmy4X0f9pEX4M8l7W2-hRLMznk3WsbuYZuSpAMWH70Oh_WND4gNWNhjIGD3mMeSx-XIeh900Hl=w1680-h914)
+![Prototype](https://raw.githubusercontent.com/lucienbl/weather-station-back-end/master/Weather_station.png)
 
