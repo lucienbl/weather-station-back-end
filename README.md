@@ -6,7 +6,7 @@ Arduino back-end source code.
 - [ ] 1x Arduino Ethernet shield
 - [ ] 2x DHT11 sensor
 - [ ] 1x LCM1 602 IIC V1
-
+- [ ] 1x [Anémometre GRLEX003](https://www.lextronic.fr/temperature-meteo/19999-capteur-anenometre.html)
 ## API URLs
 - `/data`: Get temperature & humidity
 - `/reboot`: Reboot the card
