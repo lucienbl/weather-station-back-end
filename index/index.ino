@@ -28,8 +28,6 @@ void setup() {
   Serial.print("\nLe serveur est sur l'adresse : ");
   Serial.println(Ethernet.localIP());
   lcd.clear();
-  lcd.print("IP: ");
-  lcd.setCursor(4, 0);
   lcd.print(Ethernet.localIP());
   serveur.begin();
 }
@@ -68,7 +66,7 @@ void loop() {
           client.println();
     
           //Content
-          client.print("{\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}");
+          client.print("{\"outdoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}, \"indoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}}");
     
           //Ends
           client.println();
