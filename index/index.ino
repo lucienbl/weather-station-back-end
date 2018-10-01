@@ -4,6 +4,7 @@
 #include <Ethernet.h>
 #include <Wire.h>  
 #include <avr/wdt.h>
+#include <Servo.h>
 
 EthernetServer serveur(80);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -16,6 +17,13 @@ byte humidity = 0;
 int pinDHT11 = 2;
 SimpleDHT11 dht11;
 
+Servo sun;
+Servo cloud;
+Servo rain;
+int sunHeight = 95;
+int cloudHeight = 95;
+int rainHeight = 95;
+
 byte temperatureOutdoor = 0;
 byte humidityOutdoor = 0;
 
@@ -27,6 +35,13 @@ void setup() {
   lcd.backlight();
   lcd.setCursor(0,0);
   lcd.print("Initializing...");
+
+  sun.attach(9);
+  rain.attach(10);
+  cloud.attach(11);
+  sun.write(0);
+  rain.write(0);
+  cloud.write(0);
     
   Serial.begin (9600);
 
@@ -105,6 +120,24 @@ void getTempHum() {
   }
 
   delay(1000);
+
+  //manage
+  if(temperatureOutdoor > 18 && humidityOutdoor < 60) {
+    if(rain.read() != rainHeight) {
+      rain.write(rainHeight); 
+    }
+    //TODO continue
+    cloud.write(0);
+    sun.write(sunHeight);
+  }else if(temperatureOutdoor < 20 && humidityOutdoor >= 85) {
+    sun.write(0);
+    cloud.write(0);
+    rain.write(rainHeight);
+  }else {
+    sun.write(0);
+    cloud.write(cloudHeight);
+    rain.write(0);
+  }
 }
 
 void reboot() {
