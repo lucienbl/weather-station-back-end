@@ -16,6 +16,12 @@ byte humidity = 0;
 int pinDHT11 = 2;
 SimpleDHT11 dht11;
 
+byte temperatureOutdoor = 0;
+byte humidityOutdoor = 0;
+
+int pinDHT11Outdoor = 3;
+SimpleDHT11 dht11Outdoor;
+
 void setup() {
   lcd.begin(); 
   lcd.backlight();
@@ -66,7 +72,7 @@ void loop() {
           client.println();
     
           //Content
-          client.print("{\"outdoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}, \"indoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}}");
+          client.print("{\"outdoor\": {\"temperature\": \"" + (String)temperatureOutdoor + "\", \"humidity\": \"" + (String)humidityOutdoor + "\"}, \"indoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}}");
     
           //Ends
           client.println();
@@ -88,6 +94,12 @@ void getTempHum() {
   
   byte data[40] = {0};
   if (dht11.read(pinDHT11, &temperature, &humidity, data)) {
+    Serial.print("Read DHT11 failed");
+    return;
+  }
+
+  byte dataOutdoor[40] = {0};
+  if (dht11Outdoor.read(pinDHT11Outdoor, &temperatureOutdoor, &humidityOutdoor, dataOutdoor)) {
     Serial.print("Read DHT11 failed");
     return;
   }
