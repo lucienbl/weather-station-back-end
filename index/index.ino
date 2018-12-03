@@ -17,6 +17,10 @@ byte humidity = 0;
 int pinDHT11 = 2;
 SimpleDHT11 dht11;
 
+const int R = 6;
+const int G = 5;
+const int B = 4;
+
 Servo sun;
 Servo cloud;
 Servo rain;
@@ -42,7 +46,15 @@ void setup() {
   sun.write(0);
   rain.write(0);
   cloud.write(0);
-    
+  
+  pinMode(R, OUTPUT);
+  digitalWrite(R, LOW);
+  pinMode(G, OUTPUT);
+  digitalWrite(G, LOW);
+  pinMode(B, OUTPUT);
+  digitalWrite(B, LOW);
+  setColor(HIGH, HIGH, HIGH);
+  
   Serial.begin (9600);
 
   Ethernet.begin (mac);
@@ -78,6 +90,18 @@ void loop() {
           lcd.print("Rebooting...");
           delay(2000);
           reboot();
+        }else if(httpResponse.indexOf("/red") != -1) {
+          client.println("SUCCESS");
+          client.stop();
+          setColor(HIGH, LOW, LOW);
+        }else if(httpResponse.indexOf("/green") != -1) {
+          client.println("SUCCESS");
+          client.stop();
+          setColor(LOW, HIGH, LOW);
+        }else if(httpResponse.indexOf("/blue") != -1) {
+          client.println("SUCCESS");
+          client.stop();
+          setColor(LOW, LOW, HIGH);
         }else if(httpResponse.indexOf("/data") != -1){
           //Header
           client.println("HTTP/1.1 200 OK");
@@ -140,7 +164,14 @@ void getTempHum() {
   }
 }
 
+void setColor(int red, int green, int blue) {
+  digitalWrite(R, red);
+  digitalWrite(G, green);
+  digitalWrite(B, blue);  
+}
+
 void reboot() {
   wdt_enable(WDTO_15MS);
   while(1) {}
 }
+
