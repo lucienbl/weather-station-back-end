@@ -4,7 +4,6 @@
 #include <Ethernet.h>
 #include <Wire.h>  
 #include <avr/wdt.h>
-#include <Servo.h>
 
 EthernetServer serveur(80);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -17,22 +16,9 @@ byte humidity = 0;
 int pinDHT11 = 2;
 SimpleDHT11 dht11;
 
-const int R = 6;
-const int G = 5;
-const int B = 4;
-
-Servo sun;
-Servo cloud;
-Servo rain;
-int sunHeight = 95;
-int cloudHeight = 95;
-int rainHeight = 95;
-
-byte temperatureOutdoor = 0;
-byte humidityOutdoor = 0;
-
-int pinDHT11Outdoor = 3;
-SimpleDHT11 dht11Outdoor;
+int R = 6;
+int G = 5;
+int B = 4;
 
 void setup() {
   lcd.begin(); 
@@ -40,27 +26,21 @@ void setup() {
   lcd.setCursor(0,0);
   lcd.print("Initializing...");
 
-  sun.attach(9);
-  rain.attach(10);
-  cloud.attach(11);
-  sun.write(0);
-  rain.write(0);
-  cloud.write(0);
-  
   pinMode(R, OUTPUT);
-  digitalWrite(R, LOW);
   pinMode(G, OUTPUT);
-  digitalWrite(G, LOW);
   pinMode(B, OUTPUT);
-  digitalWrite(B, LOW);
-  setColor(HIGH, HIGH, HIGH);
-  
+  digitalWrite(R, HIGH);
+  digitalWrite(G, HIGH);
+  digitalWrite(B, HIGH);
+    
   Serial.begin (9600);
 
   Ethernet.begin (mac);
   Serial.print("\nLe serveur est sur l'adresse : ");
   Serial.println(Ethernet.localIP());
   lcd.clear();
+  lcd.print("IP:");
+  lcd.setCursor(3, 0);
   lcd.print(Ethernet.localIP());
   serveur.begin();
 }
@@ -90,18 +70,6 @@ void loop() {
           lcd.print("Rebooting...");
           delay(2000);
           reboot();
-        }else if(httpResponse.indexOf("/red") != -1) {
-          client.println("SUCCESS");
-          client.stop();
-          setColor(HIGH, LOW, LOW);
-        }else if(httpResponse.indexOf("/green") != -1) {
-          client.println("SUCCESS");
-          client.stop();
-          setColor(LOW, HIGH, LOW);
-        }else if(httpResponse.indexOf("/blue") != -1) {
-          client.println("SUCCESS");
-          client.stop();
-          setColor(LOW, LOW, HIGH);
         }else if(httpResponse.indexOf("/data") != -1){
           //Header
           client.println("HTTP/1.1 200 OK");
@@ -111,13 +79,43 @@ void loop() {
           client.println();
     
           //Content
-          client.print("{\"outdoor\": {\"temperature\": \"" + (String)temperatureOutdoor + "\", \"humidity\": \"" + (String)humidityOutdoor + "\"}, \"indoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}}");
+          client.print("{\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}");
     
           //Ends
           client.println();
           client.stop();
           Serial.println("Fin de communication avec le client");
+          
+        }else if(httpResponse.indexOf("/red-green") != -1){
+          digitalWrite(R, HIGH);
+          digitalWrite(G, HIGH);
+          digitalWrite(B, LOW);
+        }else if(httpResponse.indexOf("/green-blue") != -1){
+          digitalWrite(R, LOW);
+          digitalWrite(G, HIGH);
+          digitalWrite(B, HIGH);
+        }else if(httpResponse.indexOf("/blue-red") != -1){
+          digitalWrite(R, HIGH);
+          digitalWrite(G, LOW);
+          digitalWrite(B, HIGH);
+        }else if(httpResponse.indexOf("/red") != -1){
+          digitalWrite(R, HIGH);
+          digitalWrite(G, LOW);
+          digitalWrite(B, LOW);
+        }else if(httpResponse.indexOf("/green") != -1){
+          digitalWrite(R, LOW);
+          digitalWrite(G, HIGH);
+          digitalWrite(B, LOW);
+        }else if(httpResponse.indexOf("/blue") != -1){
+          digitalWrite(R, LOW);
+          digitalWrite(G, LOW);
+          digitalWrite(B, HIGH);
+        }else if(httpResponse.indexOf("/white") != -1){
+          digitalWrite(R, HIGH);
+          digitalWrite(G, HIGH);
+          digitalWrite(B, HIGH);
         }
+        
         delay(1);
       }
 
@@ -137,41 +135,10 @@ void getTempHum() {
     return;
   }
 
-  byte dataOutdoor[40] = {0};
-  if (dht11Outdoor.read(pinDHT11Outdoor, &temperatureOutdoor, &humidityOutdoor, dataOutdoor)) {
-    Serial.print("Read DHT11 failed");
-    return;
-  }
-
   delay(1000);
-
-  //manage
-  if(temperatureOutdoor > 18 && humidityOutdoor < 60) {
-    if(rain.read() != rainHeight) {
-      rain.write(rainHeight); 
-    }
-    //TODO continue
-    cloud.write(0);
-    sun.write(sunHeight);
-  }else if(temperatureOutdoor < 20 && humidityOutdoor >= 85) {
-    sun.write(0);
-    cloud.write(0);
-    rain.write(rainHeight);
-  }else {
-    sun.write(0);
-    cloud.write(cloudHeight);
-    rain.write(0);
-  }
-}
-
-void setColor(int red, int green, int blue) {
-  digitalWrite(R, red);
-  digitalWrite(G, green);
-  digitalWrite(B, blue);  
 }
 
 void reboot() {
   wdt_enable(WDTO_15MS);
   while(1) {}
 }
-
