@@ -1,3 +1,4 @@
+
 #include <LiquidCrystal_I2C.h>
 #include <SimpleDHT.h>
 #include <SPI.h>
@@ -19,6 +20,8 @@ SimpleDHT11 dht11;
 int R = 6;
 int G = 5;
 int B = 4;
+
+bool automatic = true;
 
 byte temperatureOutdoor = 0;
 byte humidityOutdoor = 0;
@@ -119,6 +122,10 @@ void loop() {
           digitalWrite(R, HIGH);
           digitalWrite(G, HIGH);
           digitalWrite(B, HIGH);
+        }else if(httpResponse.indexOf("/auto?on=true") != -1){
+          automatic = true;
+        }else if(httpResponse.indexOf("/auto?on=false") != -1){
+          automatic = false;
         }
         
         delay(1);
@@ -145,7 +152,7 @@ void getTempHum() {
     Serial.print("Read DHT11 failed");
     return;
   }
-
+  
 
   delay(1000);
 }
