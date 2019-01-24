@@ -1,10 +1,10 @@
-
 #include <LiquidCrystal_I2C.h>
 #include <SimpleDHT.h>
 #include <SPI.h>
 #include <Ethernet.h>
 #include <Wire.h>  
 #include <avr/wdt.h>
+#include <Servo.h> 
 
 EthernetServer serveur(80);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -17,6 +17,8 @@ byte humidity = 0;
 int pinDHT11 = 2;
 SimpleDHT11 dht11;
 
+int initialState = 200;
+
 int R = 6;
 int G = 5;
 int B = 4;
@@ -27,6 +29,10 @@ byte temperatureOutdoor = 0;
 byte humidityOutdoor = 0;
 int pinDHT11Outdoor = 3;
 SimpleDHT11 dht11Outdoor;
+
+Servo servoSun;
+Servo servoCloud;
+Servo servoRain;
 
 void setup() {
   lcd.begin(); 
@@ -40,6 +46,15 @@ void setup() {
   digitalWrite(R, HIGH);
   digitalWrite(G, HIGH);
   digitalWrite(B, HIGH);
+
+  
+  servoSun.attach(8);
+  servoCloud.attach(9);
+  servoRain.attach(10);
+
+  servoSun.write(initialState);
+  servoCloud.write(initialState);
+  servoRain.write(initialState);
     
   Serial.begin (9600);
 
@@ -134,6 +149,7 @@ void loop() {
       client.println("Nothing to see here ! Please go to /data");
       client.stop();
     }
+       
   }
 }
 
@@ -152,8 +168,26 @@ void getTempHum() {
     Serial.print("Read DHT11 failed");
     return;
   }
-  
 
+  if (temperatureOutdoor >= 20 && humidityOutdoor <= 50) {
+    servoSun.write(90);
+  } else {
+    servoSun.write(initialState);
+  }
+ 
+ if (humidityOutdoor > 50) {
+    servoCloud.write(90);
+  } else {
+    servoCloud.write(initialState);
+  }
+
+   if (humidityOutdoor > 70) {
+    servoRain.write(90);
+    servoCloud.write(initialState);
+  } else {
+    servoRain.write(initialState);
+  }
+  
   delay(1000);
 }
 
