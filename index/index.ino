@@ -2,9 +2,9 @@
 #include <SimpleDHT.h>
 #include <SPI.h>
 #include <Ethernet.h>
-#include <Wire.h>  
+#include <Wire.h>
 #include <avr/wdt.h>
-#include <Servo.h> 
+#include <Servo.h>
 
 EthernetServer serveur(80);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -23,7 +23,7 @@ int R = 6;
 int G = 5;
 int B = 4;
 
-bool automatic = true;
+bool automatic = false;
 
 byte temperatureOutdoor = 0;
 byte humidityOutdoor = 0;
@@ -35,9 +35,9 @@ Servo servoCloud;
 Servo servoRain;
 
 void setup() {
-  lcd.begin(); 
+  lcd.begin();
   lcd.backlight();
-  lcd.setCursor(0,0);
+  lcd.setCursor(0, 0);
   lcd.print("Initializing...");
 
   pinMode(R, OUTPUT);
@@ -47,7 +47,7 @@ void setup() {
   digitalWrite(G, HIGH);
   digitalWrite(B, HIGH);
 
-  
+
   servoSun.attach(8);
   servoCloud.attach(9);
   servoRain.attach(10);
@@ -55,7 +55,7 @@ void setup() {
   servoSun.write(initialState);
   servoCloud.write(initialState);
   servoRain.write(initialState);
-    
+
   Serial.begin (9600);
 
   Ethernet.begin (mac);
@@ -71,21 +71,22 @@ void setup() {
 
 void loop() {
   getTempHum();
-  
+  //manageLcd();
+
   EthernetClient client = serveur.available();
-  
+
   if (client) {
     Serial.println("Client en ligne\n");
 
     if (client.connected()) {
       String httpResponse;
-      while (client.available()) {      
-        char c=client.read();
+      while (client.available()) {
+        char c = client.read();
         httpResponse += c;
-        
+
         Serial.write(c);
-        
-        if(httpResponse.indexOf("/reboot") != -1) {
+
+        if (httpResponse.indexOf("/reboot") != -1) {
           client.println("SUCCESS");
           client.stop();
           lcd.clear();
@@ -93,70 +94,156 @@ void loop() {
           lcd.print("Rebooting...");
           delay(2000);
           reboot();
-        }else if(httpResponse.indexOf("/data") != -1){
+        } else if (httpResponse.indexOf("/data") != -1) {
           //Header
           client.println("HTTP/1.1 200 OK");
           client.println("Content-Type: application/json;charset=utf-8");
+          client.println("Access-Control-Allow-Origin: *");
           client.println("Server: Arduino");
           client.println("Connnection: close");
           client.println();
-    
+
           //Content
           client.print("{\"outdoor\": {\"temperature\": \"" + (String)temperatureOutdoor + "\", \"humidity\": \"" + (String)humidityOutdoor + "\"}, \"indoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}}");
-    
+
           //Ends
           client.println();
           client.stop();
           Serial.println("Fin de communication avec le client");
-          
-        }else if(httpResponse.indexOf("/red-green") != -1){
+
+        } else if (httpResponse.indexOf("/red-green") != -1) {
           digitalWrite(R, HIGH);
           digitalWrite(G, HIGH);
           digitalWrite(B, LOW);
-        }else if(httpResponse.indexOf("/green-blue") != -1){
+          //sendHttpResponse(client, "success");
+        } else if (httpResponse.indexOf("/green-blue") != -1) {
           digitalWrite(R, LOW);
           digitalWrite(G, HIGH);
           digitalWrite(B, HIGH);
-        }else if(httpResponse.indexOf("/blue-red") != -1){
+          //sendHttpResponse(client, "success");
+        } else if (httpResponse.indexOf("/blue-red") != -1) {
           digitalWrite(R, HIGH);
           digitalWrite(G, LOW);
           digitalWrite(B, HIGH);
-        }else if(httpResponse.indexOf("/red") != -1){
+          //sendHttpResponse(client, "success");
+        } else if (httpResponse.indexOf("/red") != -1) {
           digitalWrite(R, HIGH);
           digitalWrite(G, LOW);
           digitalWrite(B, LOW);
-        }else if(httpResponse.indexOf("/green") != -1){
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: application/json;charset=utf-8");
+          client.println("Access-Control-Allow-Origin: *");
+          client.println("Server: Arduino");
+          client.println("Connnection: close");
+          client.println();
+          client.print("{\"status\":\"success\"}");
+          client.println();
+          client.stop();
+          //sendHttpResponse(client, "success");
+        } else if (httpResponse.indexOf("/green") != -1) {
           digitalWrite(R, LOW);
           digitalWrite(G, HIGH);
           digitalWrite(B, LOW);
-        }else if(httpResponse.indexOf("/blue") != -1){
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: application/json;charset=utf-8");
+          client.println("Access-Control-Allow-Origin: *");
+          client.println("Server: Arduino");
+          client.println("Connnection: close");
+          client.println();
+          client.print("{\"status\":\"success\"}");
+          client.println();
+          client.stop();
+          //sendHttpResponse(client, "success");
+        } else if (httpResponse.indexOf("/blue") != -1) {
           digitalWrite(R, LOW);
           digitalWrite(G, LOW);
           digitalWrite(B, HIGH);
-        }else if(httpResponse.indexOf("/white") != -1){
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: application/json;charset=utf-8");
+          client.println("Access-Control-Allow-Origin: *");
+          client.println("Server: Arduino");
+          client.println("Connnection: close");
+          client.println();
+          client.print("{\"status\":\"success\"}");
+          client.println();
+          client.stop();
+          //sendHttpResponse(client, "success");
+        } else if (httpResponse.indexOf("/white") != -1) {
           digitalWrite(R, HIGH);
           digitalWrite(G, HIGH);
           digitalWrite(B, HIGH);
-        }else if(httpResponse.indexOf("/auto?on=true") != -1){
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: application/json;charset=utf-8");
+          client.println("Access-Control-Allow-Origin: *");
+          client.println("Server: Arduino");
+          client.println("Connnection: close");
+          client.println();
+          client.print("{\"status\":\"success\"}");
+          client.println();
+          client.stop();
+          //sendHttpResponse(client, "success");
+        } else if (httpResponse.indexOf("/auto?on=true") != -1) {
           automatic = true;
-        }else if(httpResponse.indexOf("/auto?on=false") != -1){
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: application/json;charset=utf-8");
+          client.println("Access-Control-Allow-Origin: *");
+          client.println("Server: Arduino");
+          client.println("Connnection: close");
+          client.println();
+          client.print("{\"status\":\"success\",\"automatic\":\"" + (String)automatic + "\"}");
+          client.println();
+          client.stop();
+        } else if (httpResponse.indexOf("/auto?on=false") != -1) {
           automatic = false;
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: application/json;charset=utf-8");
+          client.println("Access-Control-Allow-Origin: *");
+          client.println("Server: Arduino");
+          client.println("Connnection: close");
+          client.println();
+          client.print("{\"status\":\"success\",\"automatic\":\"" + (String)automatic + "\"}");
+          client.println();
+          client.stop();
         }
-        
+
         delay(1);
       }
 
       client.println("Nothing to see here ! Please go to /data");
       client.stop();
     }
-       
+
   }
 }
 
+/*void manageLcd() {
+  lcd.setCursor(0, 0);
+  lcd.print("IP:             ");
+  lcd.setCursor(3, 0);
+  lcd.print(Ethernet.localIP());
+  delay(2000);
+  if(automatic) {
+    lcd.clear();
+    lcd.print("Automatic: On");
+  }
+  }*/
+
+/*void sendHttpResponse(EthernetClient client, String statusMsg) {
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-Type: application/json;charset=utf-8");
+  client.println("Access-Control-Allow-Origin: *");
+  client.println("Server: Arduino");
+  client.println("Connnection: close");
+  client.println();
+  client.print("{\"status\":\"" + statusMsg + "\"}");
+  client.println();
+  client.stop();
+  }*/
+
 void getTempHum() {
-  lcd.setCursor(0,1);
-  lcd.print("Tmp." + (String)temperature + (char)223 + "C " + "Hum." + (int)humidity + "%");
-  
+  lcd.setCursor(0, 1);
+  lcd.print("Tmp." + (String)temperatureOutdoor + (char)223 + "C " + "Hum." + (int)humidityOutdoor + "%");
+
   byte data[40] = {0};
   if (dht11.read(pinDHT11, &temperature, &humidity, data)) {
     Serial.print("Read DHT11 failed");
@@ -174,24 +261,48 @@ void getTempHum() {
   } else {
     servoSun.write(initialState);
   }
- 
- if (humidityOutdoor > 50) {
+
+  if (humidityOutdoor > 50 && humidityOutdoor <= 70) {
     servoCloud.write(90);
   } else {
     servoCloud.write(initialState);
   }
 
-   if (humidityOutdoor > 70) {
+  if (humidityOutdoor > 70) {
     servoRain.write(90);
     servoCloud.write(initialState);
   } else {
     servoRain.write(initialState);
   }
-  
+
+  if (automatic) {
+    automaticLed();
+  }
+
   delay(1000);
+}
+
+void automaticLed() {
+  if (temperatureOutdoor >= 20 && temperatureOutdoor < 23 && humidityOutdoor <= 50) {
+    digitalWrite(R, HIGH);
+    digitalWrite(G, HIGH);
+    digitalWrite(B, LOW);
+  } else if (temperatureOutdoor >= 23 && temperatureOutdoor < 26) {
+    digitalWrite(R, LOW);
+    digitalWrite(G, HIGH);
+    digitalWrite(B, HIGH);
+  } else if (temperatureOutdoor >= 26) {
+    digitalWrite(R, HIGH);
+    digitalWrite(G, LOW);
+    digitalWrite(B, HIGH);
+  } else {
+    digitalWrite(R, HIGH);
+    digitalWrite(G, HIGH);
+    digitalWrite(B, HIGH);
+  }
 }
 
 void reboot() {
   wdt_enable(WDTO_15MS);
-  while(1) {}
+  while (1) {}
 }
