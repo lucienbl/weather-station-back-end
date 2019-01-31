@@ -104,7 +104,7 @@ void loop() {
           client.println();
 
           //Content
-          client.print("{\"outdoor\": {\"temperature\": \"" + (String)temperatureOutdoor + "\", \"humidity\": \"" + (String)humidityOutdoor + "\"}, \"indoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}}");
+          client.print("{\"outdoor\": {\"temperature\": \"" + (String)temperatureOutdoor + "\", \"humidity\": \"" + (String)humidityOutdoor + "\"}, \"indoor\": {\"temperature\": \"" + (String)temperature + "\", \"humidity\": \"" + (String)humidity + "\"}, \"automatic\": \"" + (String)automatic + "\"}");
 
           //Ends
           client.println();
